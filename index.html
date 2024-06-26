@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Harta Constanței - 6 Sectoare</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <style>
+        #map { height: 600px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // Inițializare hartă
+        var map = L.map('map').setView([44.1798, 28.6375], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Definirea limitelor Constanței (aproximativ)
+        var constanta = turf.polygon([[
+            [28.5575, 44.2300],
+            [28.7175, 44.2300],
+            [28.7175, 44.1300],
+            [28.5575, 44.1300],
+            [28.5575, 44.2300]
+        ]]);
+
+        // Împărțirea în 6 sectoare
+        var bbox = turf.bbox(constanta);
+        var cellWidth = (bbox[2] - bbox[0]) / 3;
+        var cellHeight = (bbox[3] - bbox[1]) / 2;
+
+        var colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 2; j++) {
+                var cell = turf.polygon([[
+                    [bbox[0] + i * cellWidth, bbox[1] + j * cellHeight],
+                    [bbox[0] + (i + 1) * cellWidth, bbox[1] + j * cellHeight],
+                    [bbox[0] + (i + 1) * cellWidth, bbox[1] + (j + 1) * cellHeight],
+                    [bbox[0] + i * cellWidth, bbox[1] + (j + 1) * cellHeight],
+                    [bbox[0] + i * cellWidth, bbox[1] + j * cellHeight]
+                ]]);
+
+                var intersection = turf.intersect(constanta, cell);
+                if (intersection) {
+                    L.geoJSON(intersection, {
+                        style: { fillColor: colors[i * 2 + j], fillOpacity: 0.5, color: 'black', weight: 1 }
+                    }).addTo(map);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
